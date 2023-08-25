@@ -37,4 +37,4 @@ sensor.enphaselocal_inverter_XXXX where XXXX is the interver serial
 
 # To Do
 1. Cache Local Token Between Homeassistant Restarts incase cloud is down
-1. Have a version that switched for people with "Load with Solor Production". This can be queried from local envoy, so should be easy
+1. Have a version that switched for people with "Load with Solar Production". This can be queried from local envoy, so should be easy
