@@ -27,6 +27,13 @@ Cloud Data: Energy Production,Consumption, Import, Export
   siteid: 'XXXXXX' # Required, your enphasse site_id. You can find this in the enphase app - Used to get cloud data
   serial: 'XXXX' # Requried, your envoy serial number. Find this going to envoy.local - Used to get cloud data
 ```   
+You will get self explanitory sensors called:
+sensor.enphaselocal_X_Y 
+where X is: production, consumption, export, import, net (production - consumption)
+where Y is power, energy
+
+If use intervers, will get power production of each inverter
+sensor.enphaselocal_inverter_XXXX where XXXX is the interver serial
 
 # To Do
 1. Cache Local Token Between Homeassistant Restarts incase cloud is down
