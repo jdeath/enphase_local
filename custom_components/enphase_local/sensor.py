@@ -304,7 +304,7 @@ class EnphaseDataCloud:
                 self.data["energyExport"] = solar_grid
                  
             # Get Net Energy from cloud to be consistent
-            self.data["energyNet"] = max(production - consumption,0)
+            self.data["energyNet"] = production - consumption
             
             
             
