@@ -1,17 +1,31 @@
 # enphase_local
 "Local" Integration for Enphase Envoy Firmware 7.3+
+Uses endpoints found by @del13r on this thread: https://community.home-assistant.io/t/enphase-envoy-d7-firmware-with-jwt-a-different-approach/594082
 
 # Target Audiance
 This integration is for those with Enphase Envoy Firmware 7.3+ who is setup in “load only” or "total-consumption" mode. This means your envoy does not natively return the total imported/exported energy. It returns the power, but does not integrate it. One option is to use a Reiman Sum Integral to integrate the power. This integration gets the information from enphase cloud. Not sure how the cloud knows, but the local envoy does not, but I find it more accurate.
 
 Currently, this works for “load only” or "total-consumption" . Perhaps I will add ability for other setups
 
-This integration gets both local and cloud data.
+Despite the name, this integration gets both local and cloud data. It started out at getting local data, but not all the required data was local.
 
 Local Data From your envoy: Current import/export power . Inverter production data
 
 Cloud Data: Energy Production,Consumption, Import, Export
 
+# Installation
+1. Add this repo into hacs
+1. Download enphase_local integration
+1. Add the following yaml to your homeassistant configuration.yaml under the ```sensor:``` key
 
+```
+- platform: enphase_local
+  ip_address: 192.168.1.XXX # Optional, if not entered, will default to envoy.local
+  use_inverters: true # Optional, if false or not added it will not provide inverter data
+  username: 'user@email.com'  # Required, your enphase username/email - Used to get local token and cloud data
+  password: 'Password123' # Required, your enphase password - Used to get local token and cloud data
+  siteid: 'XXXXXX' # Required, your enphasse site_id. You can find this in the enphase app - Used to get cloud data
+  serial: 'XXXX' # Requried, your envoy serial number. Find this going to envoy.local - Used to get cloud data
+```   
 
 
