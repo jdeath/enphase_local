@@ -32,7 +32,7 @@ sensor.enphaselocal_X_Y
 where X is: production, consumption, export, import, net (production - consumption)
 where Y is power, energy
 
-If use intervers, will get power production of each inverter
+If use inverters, will get power production of each inverter
 sensor.enphaselocal_inverter_XXXX where XXXX is the interver serial
 
 In sensor.py you can change how often it queries local power, intervers, and the cloud seperately. Defaults to 15 seconds, 60 seconds, and 10 minutes respectively.
