@@ -5,7 +5,7 @@ Uses endpoints found by @del13r on this thread: https://community.home-assistant
 # Target Audiance
 This integration is for those with Enphase Envoy Firmware 7.3+ who is setup in “load only” or "total-consumption" mode. This means your envoy does not natively return the total imported/exported energy. It returns the power, but does not integrate it. One option is to use a Reiman Sum Integral to integrate the power. Instead, this integration gets the energy information from enphase cloud. Not sure how the cloud knows, but the local envoy does not. I find it to be reasonably accurate (I can read my actual production and net energy meter with a SDR).
 
-Currently, this works for “load only” or "total-consumption" . Perhaps I will add ability for other setups
+Currently, this works for “load only” or "total-consumption" . Perhaps I will add ability for other setups. Other setups will not need the cloud aspect, since the envoy reports this locally. However, the data is formatted differently so will require some if statements and testers.
 
 Despite the name, this integration gets both local and cloud data. It started out at getting local data, but not all the required data was local.
 
@@ -36,6 +36,7 @@ If use inverters, will get power production of each inverter
 sensor.enphaselocal_inverter_XXXX where XXXX is the interver serial
 
 In sensor.py you can change how often it queries local power, intervers, and the cloud seperately. Defaults to 15 seconds, 60 seconds, and 10 minutes respectively.
+
 # To Do
 1. Cache Local Token Between Homeassistant Restarts incase cloud is down
-1. Have a version that switched for people with "Load with Solar Production". This can be queried from local envoy, so should be easy
+1. Add support for people with "Load with Solar Production". This can be queried from local envoy, so should be easy. However, the data is formatted differently and will require some testers.
