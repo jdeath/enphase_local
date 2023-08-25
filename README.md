@@ -28,4 +28,6 @@ Cloud Data: Energy Production,Consumption, Import, Export
   serial: 'XXXX' # Requried, your envoy serial number. Find this going to envoy.local - Used to get cloud data
 ```   
 
-
+# To Do
+1. Cache Local Token Between Homeassistant Restarts incase cloud is down
+1. Have a version that switched for people with "Load with Solor Production". This can be queried from local envoy, so should be easy
