@@ -9,9 +9,9 @@ Currently, this works for “load only” or "total-consumption" . Perhaps I wil
 
 Despite the name, this integration gets both local and cloud data. It started out at getting local data, but not all the required data was local.
 
-Local Data From your envoy: Current import/export power . Inverter production data
+Local Data From your envoy: Current production,consumption,import,export power . Inverter power production
 
-Cloud Data: Energy Production,Consumption, Import, Export
+Cloud Data: Energy Production, Consumption, Import, Export, Net
 
 # Installation
 1. Add this repo into hacs
