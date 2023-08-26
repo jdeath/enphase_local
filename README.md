@@ -40,6 +40,8 @@ sensor.enphaselocal_inverter_XXXX where XXXX is the interver serial
 In sensor.py you can change how often it queries local power, intervers, and the cloud seperately. Defaults to 15 seconds, 60 seconds, and 10 minutes respectively.
 
 # To Do
+I welcome PRs for any of the below capability.
+
 1. Cache Local Token Between Homeassistant Restarts incase cloud is down
 1. Make calls async 
 1. Add support for people with "Load with Solar Production". This can be queried from local envoy, so should be easy. However, the data is formatted differently and will require some testers.
