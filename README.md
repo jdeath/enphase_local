@@ -9,7 +9,7 @@ Currently, this works for “load only” or "total-consumption" . Perhaps I wil
 
 Despite the name, this integration gets both local and cloud data. It started out at getting local data, but not all the required data was local.
 
-Local Data From your envoy: Current production,consumption,import,export power . Inverter power production
+Local Data From your envoy: Current production,consumption,import,export power. Lifetime Energy Production, Consumption, Net. Inverter power production
 
 Cloud Data: Energy Production, Consumption, Import, Export, Net
 
@@ -32,6 +32,8 @@ sensor.enphaselocal_X_Y
 where X is: production, consumption, export, import, net (production - consumption)
 where Y is power, energy
 
+Also will get sensor.enphaselocal_energy_Z_lifetime, where z is production,consumption,net
+
 If use inverters, will get power production of each inverter
 sensor.enphaselocal_inverter_XXXX where XXXX is the interver serial
 
@@ -39,4 +41,5 @@ In sensor.py you can change how often it queries local power, intervers, and the
 
 # To Do
 1. Cache Local Token Between Homeassistant Restarts incase cloud is down
+1. Make calls async 
 1. Add support for people with "Load with Solar Production". This can be queried from local envoy, so should be easy. However, the data is formatted differently and will require some testers.
