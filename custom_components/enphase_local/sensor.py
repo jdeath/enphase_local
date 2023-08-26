@@ -116,7 +116,27 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.POWER,
         icon="mdi:current-ac",
     ),
-      
+    EnphaseLocalSensorEntityDescription(
+        key="energyProdLifetime",
+        name="Energy Production Lifetime",
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:current-ac",
+    ),
+    EnphaseLocalSensorEntityDescription(
+        key="energyConLifetime",
+        name="Energy Consumption Lifetime",
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:current-ac",
+    ),
+    EnphaseLocalSensorEntityDescription(
+        key="energyNetLifetime",
+        name="Energy Net Lifetime",
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:current-ac",
+    ),     
 )
 
 SENSOR_TYPES_CLOUD: tuple[EnphaseLocalSensorEntityDescription, ...] = (
@@ -283,7 +303,7 @@ class EnphaseDataCloud:
         auth_response = self.session.get(self.url);
         if auth_response.ok:
             dailyTotal = auth_response.json()["stats"][0]["totals"]
-            _LOGGER.debug(dailyTotal)
+            #_LOGGER.debug(dailyTotal)
             production = 0
             consumption = 0
             
@@ -337,6 +357,11 @@ class EnphaseData:
             self.data["powerExport"] = max(0,powerProduction - powerConsumption)
             self.data["powerImport"] = max(0,powerConsumption - powerProduction)
             
+            energyProductionLifetime = value_json[0].get("actEnergyDlvd")
+            self.data["energyProdLifetime"] = energyProductionLifetime
+            energyConsumptionLifetime = value_json[1].get("actEnergyDlvd")
+            self.data["energyConLifetime"] = energyConsumptionLifetime
+            self.data["energyNetLifetime"] = energyProductionLifetime - energyConsumptionLifetime
 
 class EnphaseDataInverters:
     """Get and update the latest data."""
