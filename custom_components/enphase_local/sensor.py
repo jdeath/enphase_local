@@ -86,6 +86,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Power Production",
         native_unit_of_measurement=POWER_WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
     ),
     EnphaseLocalSensorEntityDescription(
@@ -93,6 +94,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Power Consumption",
         native_unit_of_measurement=POWER_WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
     ),
     EnphaseLocalSensorEntityDescription(
@@ -100,6 +102,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Power Net",
         native_unit_of_measurement=POWER_WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
     ),
     EnphaseLocalSensorEntityDescription(
@@ -107,6 +110,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Power Export",
         native_unit_of_measurement=POWER_WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
     ),
     EnphaseLocalSensorEntityDescription(
@@ -114,6 +118,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Power Import",
         native_unit_of_measurement=POWER_WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
     ),
     EnphaseLocalSensorEntityDescription(
@@ -121,6 +126,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Energy Production Lifetime",
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:current-ac",
     ),
     EnphaseLocalSensorEntityDescription(
@@ -128,6 +134,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Energy Consumption Lifetime",
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:current-ac",
     ),
     EnphaseLocalSensorEntityDescription(
@@ -135,6 +142,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Energy Net Lifetime",
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
     ),     
 )
@@ -153,6 +161,7 @@ SENSOR_TYPES_CLOUD: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Net Export Energy",
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:solar-power",
     ),
     EnphaseLocalSensorEntityDescription(
@@ -176,6 +185,7 @@ SENSOR_TYPES_CLOUD: tuple[EnphaseLocalSensorEntityDescription, ...] = (
         name="Energy Consumption",
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:solar-power",
     ),  
 )
@@ -306,22 +316,24 @@ class EnphaseDataCloud:
             #_LOGGER.debug(dailyTotal)
             production = 0
             consumption = 0
+            grid_home = 0
+            solar_grid = 0
             
             if "production" in dailyTotal:
                 production = dailyTotal["production"]
-                self.data["energyProduction"] = production
+            self.data["energyProduction"] = production
                 
             if "consumption" in dailyTotal:    
                 consumption = dailyTotal["consumption"]
-                self.data["energyConsumption"] = consumption
+            self.data["energyConsumption"] = consumption
             
             if "grid_home" in dailyTotal:
                 grid_home = dailyTotal["grid_home"]
-                self.data["energyImport"] = grid_home
+            self.data["energyImport"] = grid_home
             
             if "solar_grid" in dailyTotal:
                 solar_grid = dailyTotal["solar_grid"]
-                self.data["energyExport"] = solar_grid
+            self.data["energyExport"] = solar_grid
                  
             # Get Net Energy from cloud to be consistent
             self.data["energyNet"] = production - consumption
