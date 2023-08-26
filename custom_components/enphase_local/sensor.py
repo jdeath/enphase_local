@@ -239,7 +239,7 @@ def setup_platform(
         if auth_response.ok:    
             value_json = auth_response.json()
             for x in value_json:
-                sensorName = "_inverter_" + str(x.get("serialNumber"))
+                sensorName = "inverter_" + str(x.get("serialNumber"))
                 description = EnphaseLocalSensorEntityDescription(key=sensorName,name=sensorName,native_unit_of_measurement=UnitOfPower.WATT,device_class=SensorDeviceClass.POWER,)
                 entities.append(EnphaseSensor(platform_name, inverterData, description))
     
@@ -394,5 +394,5 @@ class EnphaseDataInverters:
         if auth_response.ok:
             value_json = auth_response.json()
             for x in value_json:
-                sensorName = "_inverter_" + str(x.get("serialNumber"))
+                sensorName = "inverter_" + str(x.get("serialNumber"))
                 self.data[sensorName] = x.get("lastReportWatts")            
