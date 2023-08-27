@@ -2,6 +2,8 @@
 "Local" Integration for Enphase Envoy Firmware 7.3+
 Uses endpoints found by @del13r on this thread: https://community.home-assistant.io/t/enphase-envoy-d7-firmware-with-jwt-a-different-approach/594082
 
+[![Stargazers repo roster for @jdeath/enphase_local](https://git-lister.onrender.com/api/stars/jdeath/enphase_local?limit=30)](https://github.com/jdeath/enphase_local/stargazers)
+
 # Target Audiance
 This integration is for those with Enphase Envoy Firmware 7.3+ who is setup in “load only” or "total-consumption" mode. This means your envoy does not natively return the total imported/exported energy. It returns the power, but does not integrate it. One option is to use a Reiman Sum Integral to integrate the power. Instead, this integration gets the energy information from enphase cloud. Not sure how the cloud knows, but the local envoy does not. I find it to be reasonably accurate (I can read my actual production and net energy meter with a SDR).
 
