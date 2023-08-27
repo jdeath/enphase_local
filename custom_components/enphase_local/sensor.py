@@ -310,9 +310,15 @@ class EnphaseDataCloud:
     def update(self):
         """Update the data from the Enphase Monitoring API."""
         
-        auth_response = self.session.get(self.url);
+        auth_response = self.session.get(self.url); 
         if auth_response.ok:
-            dailyTotal = auth_response.json()["stats"][0]["totals"]
+            responseJSON = auth_response.json()
+            
+            if responseJSON["stats"][0] is not None:
+                dailyTotal = responseJSON["stats"][0]["totals"]
+            else:
+                dailyTotal = None
+            
             #_LOGGER.debug(dailyTotal)
             production = 0
             consumption = 0
