@@ -39,7 +39,7 @@ Also will get sensor.enphaselocal_energy_Z_lifetime, where z is production,consu
 If use inverters, will get power production of each inverter
 sensor.enphaselocal_inverter_XXXX where XXXX is the interver serial
 
-In sensor.py you can change how often it queries local power, intervers, and the cloud seperately. Defaults to 15 seconds, 60 seconds, and 10 minutes respectively.
+In sensor.py you can change how often it queries local power, intervers, and the cloud seperately. Defaults to 30 seconds, 60 seconds, and 10 minutes respectively. You must set SCAN_INTERVAL to the lowest value.
 
 # To Do
 I welcome PRs for any of the below capability.
