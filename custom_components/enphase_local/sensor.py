@@ -21,6 +21,10 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.util import Throttle
 from urllib3.exceptions import InsecureRequestWarning
 
+import asyncio
+from aiohttp import ClientError, ClientResponseError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
 _LOGGER = logging.getLogger(__name__)
 
 from homeassistant.components.sensor import (
@@ -55,7 +59,8 @@ CONF_SITEID = "siteid"
 
 DOMAIN = "enphase_local"
 
-UPDATE_DELAY = timedelta(seconds=15)
+SCAN_INTERVAL = timedelta(seconds=30)
+UPDATE_DELAY = timedelta(seconds=30)
 UPDATE_DELAY_INVERTER = timedelta(seconds=60)
 UPDATE_DELAY_CLOUD = timedelta(seconds=600)
 
@@ -190,10 +195,10 @@ SENSOR_TYPES_CLOUD: tuple[EnphaseLocalSensorEntityDescription, ...] = (
     ),  
 )
 
-def setup_platform(
+async def async_setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
-    add_entities: AddEntitiesCallback,
+    async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Create the Enphase Monitoring API sensor."""
@@ -206,16 +211,25 @@ def setup_platform(
     serialNumber = config[CONF_SERIAL]
     siteID = config[CONF_SITEID]
     
+    session = async_get_clientsession(hass)
+        
     # Get 12-month Token for local access
     postData = {'user[email]': userName, 'user[password]': password}
-    response = requests.post('https://enlighten.enphaseenergy.com/login/login.json?',data=postData)
-    response_data = response.json()
+    response = await session.post('https://enlighten.enphaseenergy.com/login/login.json?',data=postData)
+    if response.status != 200:
+        _LOGGER.error(f"{response.url} returned {response.status}")
+        return
+    
+    response_data = await response.json()
     postData = {'session_id': response_data['session_id'], 'serial_num': serialNumber, 'username':userName}
-    response = requests.post('https://entrez.enphaseenergy.com/tokens', json=postData)
-    token = response.text
     
+    response = await session.post('https://entrez.enphaseenergy.com/tokens', json=postData)
+    if response.status != 200:
+        _LOGGER.error(f"{response.url} returned {response.status}")
+        return
+    
+    token = await response.text()
     headers = {'Authorization': "Bearer {}".format(token)}
-    
     data = EnphaseData(hass, headers,ipaddress)
     
     # Create entities
@@ -224,7 +238,6 @@ def setup_platform(
         for description in SENSOR_TYPES_LOCAL
     ]
 
-    
     cloudData = EnphaseDataCloud(hass, userName, password, siteID) 
     for description in SENSOR_TYPES_CLOUD:
         entities.append( EnphaseSensor(platform_name, cloudData, description) )
@@ -232,18 +245,19 @@ def setup_platform(
     if useInverters:
         inverterData = EnphaseDataInverters(hass,headers,ipaddress)
     
-        session = requests.Session()
-        session.verify = False
-        
-        auth_response = session.get('https://' + ipaddress + '/api/v1/production/inverters', headers=headers)
-        if auth_response.ok:    
-            value_json = auth_response.json()
-            for x in value_json:
-                sensorName = "inverter_" + str(x.get("serialNumber"))
-                description = EnphaseLocalSensorEntityDescription(key=sensorName,name=sensorName,native_unit_of_measurement=UnitOfPower.WATT,device_class=SensorDeviceClass.POWER,)
-                entities.append(EnphaseSensor(platform_name, inverterData, description))
-    
-    add_entities(entities, True)
+        response = await session.get('https://' + ipaddress + '/api/v1/production/inverters', headers=headers,ssl=False)
+        if response.status != 200:
+            _LOGGER.error(f"{response.url} returned {response.status}")
+            return
+         
+        tempdata = await response.read()
+        value_json = json.loads(tempdata)
+        for x in value_json:
+            sensorName = "inverter_" + str(x.get("serialNumber"))
+            description = EnphaseLocalSensorEntityDescription(key=sensorName,name=sensorName,native_unit_of_measurement=UnitOfPower.WATT,device_class=SensorDeviceClass.POWER,)
+            entities.append(EnphaseSensor(platform_name, inverterData, description))
+
+    async_add_entities(entities, True)
     
 
 class EnphaseSensor(SensorEntity):
@@ -272,15 +286,15 @@ class EnphaseSensor(SensorEntity):
             except KeyError:
                 pass
         return None
-    
+        
     @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
         return self._attr_name
            
-    def update(self) -> None:
+    async def async_update(self) -> None:
         """Get the latest data from the sensor and update the state."""
-        self._data.update()
+        await self._data.async_update()
         self._attr_native_value = self._data.data.get(self.entity_description.key)
 
 class EnphaseDataCloud:
@@ -292,57 +306,61 @@ class EnphaseDataCloud:
         self.userName = userName
         self.password = password
         self.siteID = siteID
+        self.session = async_get_clientsession(self.hass)
         self.data = {}
-        self.session = requests.Session()
         self.token = ''
         self.url = "https://enlighten.enphaseenergy.com/pv/systems/" + self.siteID + "/today"
         self.login()
         
-    def login(self):
+    async def login(self):
         auth_data = {        
         'user[email]':     self.userName,
         'user[password]':  self.password,
         }
-        self.session.post("https://enlighten.enphaseenergy.com/login/login.json",data=auth_data)
+        
+        await self.session.post("https://enlighten.enphaseenergy.com/login/login.json",data=auth_data)
         
         
     @Throttle(UPDATE_DELAY_CLOUD)
-    def update(self):
+    async def async_update(self):
         """Update the data from the Enphase Monitoring API."""
         
-        auth_response = self.session.get(self.url); 
-        if auth_response.ok:
-            responseJSON = auth_response.json()
+        resp = await self.session.get(self.url)
+        if resp.status != 200:
+            _LOGGER.error(f"{resp.url} returned {resp.status}")
+            return
+
+        responseJSON = await resp.json()
+                    
+        if responseJSON["stats"][0] is not None:
+            dailyTotal = responseJSON["stats"][0]["totals"]
+        else:
+            dailyTotal = None
             
-            if responseJSON["stats"][0] is not None:
-                dailyTotal = responseJSON["stats"][0]["totals"]
-            else:
-                dailyTotal = None
+        #_LOGGER.debug(dailyTotal)
+        production = 0
+        consumption = 0
+        grid_home = 0
+        solar_grid = 0
+        
+        if "production" in dailyTotal:
+            production = dailyTotal["production"]
+        self.data["energyProduction"] = production
             
-            #_LOGGER.debug(dailyTotal)
-            production = 0
-            consumption = 0
-            grid_home = 0
-            solar_grid = 0
-            
-            if "production" in dailyTotal:
-                production = dailyTotal["production"]
-            self.data["energyProduction"] = production
-                
-            if "consumption" in dailyTotal:    
-                consumption = dailyTotal["consumption"]
-            self.data["energyConsumption"] = consumption
-            
-            if "grid_home" in dailyTotal:
-                grid_home = dailyTotal["grid_home"]
-            self.data["energyImport"] = grid_home
-            
-            if "solar_grid" in dailyTotal:
-                solar_grid = dailyTotal["solar_grid"]
-            self.data["energyExport"] = solar_grid
-                 
-            # Get Net Energy from cloud to be consistent
-            self.data["energyNet"] = production - consumption
+        if "consumption" in dailyTotal:    
+            consumption = dailyTotal["consumption"]
+        self.data["energyConsumption"] = consumption
+        
+        if "grid_home" in dailyTotal:
+            grid_home = dailyTotal["grid_home"]
+        self.data["energyImport"] = grid_home
+        
+        if "solar_grid" in dailyTotal:
+            solar_grid = dailyTotal["solar_grid"]
+        self.data["energyExport"] = solar_grid
+             
+        # Get Net Energy from cloud to be consistent
+        self.data["energyNet"] = production - consumption
             
             
             
@@ -358,28 +376,34 @@ class EnphaseData:
         self.data = {}
         
     @Throttle(UPDATE_DELAY)
-    def update(self):
+    async def async_update(self):
         """Update the data from the Enphase Monitoring API."""
         
-        session = requests.Session()
-        session.verify = False
+        session = async_get_clientsession(self.hass)
         
-        auth_response = session.get('https://' + self.ipaddress + '/ivp/meters/readings', headers=self.headers)
-        if auth_response.ok:
-            value_json = auth_response.json()
-            powerProduction = value_json[0].get("activePower")
-            self.data["powerProduction"] = powerProduction
-            powerConsumption = value_json[1].get("activePower")
-            self.data["powerConsumption"]= powerConsumption
-            self.data["powerNet"] = powerProduction-powerConsumption
-            self.data["powerExport"] = max(0,powerProduction - powerConsumption)
-            self.data["powerImport"] = max(0,powerConsumption - powerProduction)
+        resp = await session.get('https://' + self.ipaddress + '/ivp/meters/readings', headers=self.headers, ssl=False)
+        if resp.status != 200:
+            _LOGGER.error(f"{resp.url} returned {resp.status}")
+            return
             
-            energyProductionLifetime = value_json[0].get("actEnergyDlvd")
-            self.data["energyProdLifetime"] = energyProductionLifetime
-            energyConsumptionLifetime = value_json[1].get("actEnergyDlvd")
-            self.data["energyConLifetime"] = energyConsumptionLifetime
-            self.data["energyNetLifetime"] = energyProductionLifetime - energyConsumptionLifetime
+        data = await resp.read()
+        value_json = json.loads(data)    
+        powerProduction = value_json[0].get("activePower")
+        self.data["powerProduction"] = powerProduction
+        powerConsumption = value_json[1].get("activePower")
+        self.data["powerConsumption"]= powerConsumption
+        self.data["powerNet"] = powerProduction-powerConsumption
+        self.data["powerExport"] = max(0,powerProduction - powerConsumption)
+        self.data["powerImport"] = max(0,powerConsumption - powerProduction)
+        
+        energyProductionLifetime = value_json[0].get("actEnergyDlvd")
+        self.data["energyProdLifetime"] = energyProductionLifetime
+        energyConsumptionLifetime = value_json[1].get("actEnergyDlvd")
+        self.data["energyConLifetime"] = energyConsumptionLifetime
+        self.data["energyNetLifetime"] = energyProductionLifetime - energyConsumptionLifetime
+        
+        self.data["energyProductionTodayLocal"] = energyProductionLifetime - energyConsumptionLifetime
+            
 
 class EnphaseDataInverters:
     """Get and update the latest data."""
@@ -392,13 +416,18 @@ class EnphaseDataInverters:
         self.data = {}
         
     @Throttle(UPDATE_DELAY_INVERTER)
-    def update(self):
+    async def async_update(self):
         """Update the data from the Enphase Monitoring API."""
-        session = requests.Session()
-        session.verify = False
-        auth_response = session.get('https://' + self.ipaddress + '/api/v1/production/inverters', headers=self.headers)
-        if auth_response.ok:
-            value_json = auth_response.json()
-            for x in value_json:
-                sensorName = "inverter_" + str(x.get("serialNumber"))
-                self.data[sensorName] = x.get("lastReportWatts")            
+        session = async_get_clientsession(self.hass)
+        
+        resp = await session.get('https://' + self.ipaddress + '/api/v1/production/inverters', headers=self.headers, ssl=False)
+        if resp.status != 200:
+            _LOGGER.error(f"{resp.url} returned {resp.status}")
+            return
+            
+        data = await resp.read()
+        value_json = json.loads(data)
+        
+        for x in value_json:
+            sensorName = "inverter_" + str(x.get("serialNumber"))
+            self.data[sensorName] = x.get("lastReportWatts")            
