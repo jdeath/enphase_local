@@ -46,8 +46,7 @@ from homeassistant.const import (
     UnitOfFrequency,
     UnitOfPower,
     UnitOfTemperature,
-    ENERGY_WATT_HOUR,
-    POWER_WATT,
+    UnitOfEnergy,
     Platform,
     PERCENTAGE
 )
@@ -89,7 +88,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
     EnphaseLocalSensorEntityDescription(
         key="powerProduction",
         name="Power Production",
-        native_unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
@@ -97,7 +96,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
     EnphaseLocalSensorEntityDescription(
         key="powerConsumption",
         name="Power Consumption",
-        native_unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
@@ -105,7 +104,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
     EnphaseLocalSensorEntityDescription(
         key="powerNet",
         name="Power Net",
-        native_unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
@@ -113,7 +112,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
     EnphaseLocalSensorEntityDescription(
         key="powerExport",
         name="Power Export",
-        native_unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
@@ -121,7 +120,7 @@ SENSOR_TYPES_LOCAL: tuple[EnphaseLocalSensorEntityDescription, ...] = (
     EnphaseLocalSensorEntityDescription(
         key="powerImport",
         name="Power Import",
-        native_unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:current-ac",
